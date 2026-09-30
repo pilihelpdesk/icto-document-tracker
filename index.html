@@ -97,7 +97,7 @@ var SCOL={"Received":["#93c5fd","#000"],"On Process":["#facc15","#000"],"Forward
 var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 var F=[["dateReceived","Date Received / Created","date",1],["type","Transaction Type","sel",1,"Select type",TYPES],["docType","Document Information","text",1,"Enter Document Information"],["ref","Reference Number","text",0,"Enter reference number"],["subject","Subject / Particulars","area",1,"Enter subject or particulars"],["origin","Origin of Document","text",0,"Office / Person / Department"],["recipient","Recipient / To","text",0,"Enter recipient"],["receivedBy","Received By","sel",1,"Select person",PEOPLE],["assignedTo","Assigned To","sel",1,"Select person",PEOPLE],["forwarded","Date Forwarded / Released","date",0],["action","Action Required","area",0,"Enter action required"],["due","Due Date / Date of Event","date",0],["status","Status","sel",1,"Select status",STATUS],["statusNote","Status Details","text",0,""],["remarks","Remarks","area",0,"Enter remarks"],["location","File / Record Location","text",0,"Enter file location or Google Drive link"]];
 var KEY="icto-docs",docs=[],editId=null,rowMap={},mode="local";
-var APPS_SCRIPT_URL="https://script.google.com/a/macros/cbsua.edu.ph/s/AKfycbx2yPb5lCB1EW_V-R4sOLjUld1blAD_-sif2WZeUOk4jduWPofGGkBys_rTyPIkorVmGA/exec";
+var APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbywHapk-Ge-csMOTGKMzLGI6TmwDSY2nTYKxe21XES_LB1y_noVZKUD53KreqMuGct7Ew/exec";
 var HEADER=["id","dateReceived","type","docType","ref","subject","origin","recipient","receivedBy","assignedTo","forwarded","action","due","status","statusNote","remarks","location","updatedAt"];
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -120,7 +120,7 @@ function updateNote(){var v=$("status").value,n=NOTES[v],r=$("row-statusNote");r
 function load(){try{docs=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){docs=[]}docs.forEach(function(d,i){if(!d.id)d.id="d"+Date.now()+i})}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(docs))}catch(e){say("Storage unavailable: saved for this session only.","err")}}
 
-function haveBackend(){return APPS_SCRIPT_URL&&APPS_SCRIPT_URL.indexOf("PASTE_YOUR")==-1}
+function haveBackend(){return APPS_SCRIPT_URL&&APPS_SCRIPT_URL.indexOf("https://script.google.com/macros/s/AKfycbywHapk-Ge-csMOTGKMzLGI6TmwDSY2nTYKxe21XES_LB1y_noVZKUD53KreqMuGct7Ew/exec")==-1}
 function api(params){
   var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+"="+encodeURIComponent(params[k]==null?"":params[k])}).join("&");
   return fetch(APPS_SCRIPT_URL+"?"+qs).then(function(r){
