@@ -96,9 +96,8 @@ var STATUS=["Received","On Process","Forwarded","Pending","Filed","For Approval"
 var SCOL={"Received":["#93c5fd","#000"],"On Process":["#facc15","#000"],"Forwarded":["#6d28d9","#fff"],"Completed":["#15803d","#fff"],"Pending":["#fde68a","#000"],"Filed":["#1d4ed8","#fff"],"For Approval":["#f97316","#fff"],"For Signature":["#ef4444","#fff"],"On Hold":["#6b7280","#fff"]};
 var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 var F=[["dateReceived","Date Received / Created","date",1],["type","Transaction Type","sel",1,"Select type",TYPES],["docType","Document Information","text",1,"Enter Document Information"],["ref","Reference Number","text",0,"Enter reference number"],["subject","Subject / Particulars","area",1,"Enter subject or particulars"],["origin","Origin of Document","text",0,"Office / Person / Department"],["recipient","Recipient / To","text",0,"Enter recipient"],["receivedBy","Received By","sel",1,"Select person",PEOPLE],["assignedTo","Assigned To","sel",1,"Select person",PEOPLE],["forwarded","Date Forwarded / Released","date",0],["action","Action Required","area",0,"Enter action required"],["due","Due Date / Date of Event","date",0],["status","Status","sel",1,"Select status",STATUS],["statusNote","Status Details","text",0,""],["remarks","Remarks","area",0,"Enter remarks"],["location","File / Record Location","text",0,"Enter file location or Google Drive link"]];
-var KEY="icto-docs",docs=[],editId=null,rowMap={},mcp=null,sheets=null,mode="loading";
-var SPREADSHEET_ID="1EfKV5nBw1nAWCVCpIlVRP1mSJzis2Fvga0pgcdqCrv4";
-var SHEET_NAME="Sheet1";
+var KEY="icto-docs",docs=[],editId=null,rowMap={},mode="local";
+var APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbw2K9rcEBbKu8isXOqLXpijPt4eYZqJLKJhhrVs1vfR-SCKkzSWhXvEepl0xTOSBc4gfA/exec";
 var HEADER=["id","dateReceived","type","docType","ref","subject","origin","recipient","receivedBy","assignedTo","forwarded","action","due","status","statusNote","remarks","location","updatedAt"];
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -118,48 +117,35 @@ $("frm").innerHTML=F.map(function(f){
 function reset(){F.forEach(function(f){var e=$(f[0]);e.value="";e.classList.remove("invalid")});$("dateReceived").value=today();editId=null;updateNote()}
 var NOTES={"Received":["Received From","Enter who or which office it was received from","from"],"On Process":["Being Processed By","Enter who or which office is processing it","by"],"Forwarded":["Forwarded To (Office)","Type the office it was forwarded to","to"],"Completed":["Completion Details","Enter completion details","" ],"Pending":["Reason for Pending","Enter why it is pending",""],"Filed":["Filed At","Enter where it was filed","at"],"For Approval":["For Approval By","Enter who will approve it","by"],"For Signature":["For Signature By","Enter who will sign it","by"],"On Hold":["Reason for Hold","Enter why it is on hold",""]};
 function updateNote(){var v=$("status").value,n=NOTES[v],r=$("row-statusNote");r.style.display=n?"":"none";if(n){r.querySelector(".lab").innerHTML=n[0];$("statusNote").placeholder=n[1]}else{$("statusNote").value=""}$("statusNote").classList.remove("invalid")}
-function load(){try{docs=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){docs=[]}docs.forEach(function(d,i){if(!d.id)d.id="d"+Date.now()+i;if(d.forwardedTo&&!d.statusNote)d.statusNote=d.forwardedTo})}
+function load(){try{docs=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){docs=[]}docs.forEach(function(d,i){if(!d.id)d.id="d"+Date.now()+i})}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(docs))}catch(e){say("Storage unavailable: saved for this session only.","err")}}
 
-function sheetErrMsg(err){
-  var code=err&&err.code;
-  switch(code){
-    case"needs_reauth":return"Google Sheets needs to be reconnected (claude.ai Settings → Connectors).";
-    case"server_not_connected":return"Google Sheets isn't connected. Add it in Settings → Connectors.";
-    case"selection_required":return"Choose which Google account to use for Sheets, then try again.";
-    case"not_in_manifest":return"This page isn't allowed to use Google Sheets right now.";
-    case"blocked_by_policy":return"Your organization blocks this Google Sheets action.";
-    case"approval_required":return"This action needs approval before it can run.";
-    case"server_unavailable":return"Google Sheets is temporarily unavailable. Try again shortly.";
-    case"tool_error":return"Google Sheets rejected the request.";
-    default:return"Couldn't reach Google Sheets"+(code?" ("+code+")":"")+".";
-  }
+function haveBackend(){return APPS_SCRIPT_URL&&APPS_SCRIPT_URL.indexOf("PASTE_YOUR")==-1}
+function api(params){
+  var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+"="+encodeURIComponent(params[k]==null?"":params[k])}).join("&");
+  return fetch(APPS_SCRIPT_URL+"?"+qs).then(function(r){
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    return r.json();
+  }).then(function(j){if(!j||j.ok===false)throw new Error((j&&j.error)||"request failed");return j});
 }
-function rowNumFromRange(range){var m=/![A-Z]+(\d+)/.exec(range||"");return m?+m[1]:null}
-function rowToDoc(row){var d={};HEADER.forEach(function(h,i){d[h]=row[i]||""});return d}
-function docToRow(d){return HEADER.map(function(h){return d[h]||""})}
 
 async function initStorage(){
-  try{
-    mcp=await claude.use("mcp");
-    if(!mcp){mode="local";load();filters();render();return}
-    sheets=await mcp.server("Google Sheets");
-    mode="sheets";
-    await refreshFromSheet();
-  }catch(e){
+  if(!haveBackend()){
     mode="local";load();filters();render();
-    say(sheetErrMsg(e)+" Working from local storage for now.","err");
+    say("No Google Sheets backend configured yet — working from this browser's local storage.","err");
+    return;
   }
+  mode="sheets";
+  await refreshFromSheet();
 }
 async function refreshFromSheet(){
   try{
     say("Loading records from Google Sheets…");
-    var res=await sheets.get_values({spreadsheetId:SPREADSHEET_ID,range:SHEET_NAME+"!A2:R100000"});
-    var values=(res&&res.values)||[];
+    var j=await api({action:"list"});
     docs=[];rowMap={};
-    values.forEach(function(row,i){if(!row||!row[0])return;var d=rowToDoc(row);docs.push(d);rowMap[d.id]=i+2});
+    (j.rows||[]).forEach(function(r){var d={};HEADER.forEach(function(h){d[h]=r[h]||""});docs.push(d);rowMap[d.id]=r._row});
     filters();render();say("");
-  }catch(e){say(sheetErrMsg(e),"err")}
+  }catch(e){say("Couldn't reach Google Sheets: "+e.message,"err")}
 }
 
 function view(){
@@ -198,19 +184,15 @@ $("save").onclick=async function(){
   if(mode=="sheets"){
     d.id=editId||("d"+Date.now());
     d.updatedAt=new Date().toISOString();
-    var rowArr=docToRow(d);
+    var params={action:"save"};HEADER.forEach(function(h){params[h]=d[h]});
+    if(editId&&rowMap[editId])params._row=rowMap[editId];
     try{
-      if(editId&&rowMap[editId]){
-        await sheets.update_values({spreadsheetId:SPREADSHEET_ID,range:SHEET_NAME+"!A"+rowMap[editId]+":R"+rowMap[editId],values:[rowArr]});
-        var i=docs.findIndex(function(x){return x.id==editId});if(i>-1)docs[i]=d;
-      }else{
-        var res=await sheets.append_values({spreadsheetId:SPREADSHEET_ID,range:SHEET_NAME+"!A1",values:[rowArr]});
-        var r=rowNumFromRange(res&&res.updates&&res.updates.updatedRange);
-        if(r)rowMap[d.id]=r;
-        docs.unshift(d);
-      }
+      var j=await api(params);
+      if(j.row)rowMap[d.id]=j.row;
+      if(editId){var i=docs.findIndex(function(x){return x.id==editId});if(i>-1)docs[i]=d}
+      else docs.unshift(d);
       reset();filters();render();say("Document saved to Google Sheets.","ok");
-    }catch(e){say(sheetErrMsg(e),"err")}
+    }catch(e){say("Couldn't save: "+e.message,"err")}
   }else{
     if(editId){var i=docs.findIndex(function(x){return x.id==editId});d.id=editId;if(i>-1)docs[i]=d;else docs.unshift(d)}
     else{d.id="d"+Date.now();docs.unshift(d)}
@@ -233,9 +215,9 @@ $("tables").onclick=async function(e){
       if(row){
         t.disabled=true;
         try{
-          await sheets.update_values({spreadsheetId:SPREADSHEET_ID,range:SHEET_NAME+"!A"+row+":R"+row,values:[HEADER.map(function(){return""})]});
+          await api({action:"delete",_row:row});
           docs=docs.filter(function(d){return d.id!=id});delete rowMap[id];filters();render();say("Document deleted.","ok");
-        }catch(err){say(sheetErrMsg(err),"err");t.disabled=false}
+        }catch(err){say("Couldn't delete: "+err.message,"err");t.disabled=false}
       }
     }else{
       docs=docs.filter(function(d){return d.id!=id});persist();filters();render();
