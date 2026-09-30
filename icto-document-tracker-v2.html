@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ICTO Document Tracker</title>
+<style>
+:root{--card:#fff;--text:#111;--bd:#000;--head:#f3f4f6;--stripe:#fafafa;--muted:#6b7280;--req:#d00;--ok:#0a7a2f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--card:#1e2117;--text:#f1f1e6;--bd:#cfcfbf;--head:#2a2e20;--stripe:#22261b;--muted:#a3a595;--req:#ff6b6b;--ok:#4cd07a}}
+:root[data-theme="dark"]{--card:#1e2117;--text:#f1f1e6;--bd:#cfcfbf;--head:#2a2e20;--stripe:#22261b;--muted:#a3a595;--req:#ff6b6b;--ok:#4cd07a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:20px 16px;color:var(--text);font:16px/1.35 Arial,Helvetica,sans-serif;
+background:linear-gradient(135deg,#14532d 0%,#1e5a2a 35%,#5a6b26 70%,#8a6a14 100%) fixed}
+.card{max-width:1280px;margin:0 auto;background:var(--card);border:2px solid var(--bd);box-shadow:0 6px 24px rgba(0,0,0,.35)}
+h1{margin:3px 3px 0;padding:9px 10px;background:#facc15;color:#000;text-align:center;font-size:24px;font-weight:900;font-style:italic;text-transform:uppercase;border-bottom:3px solid #000}
+.pad{padding:10px 10px 0}
+.frm{border:2px solid var(--bd)}
+.row{display:grid;grid-template-columns:32% 1fr;border-bottom:1px solid var(--bd)}
+.row:last-child{border-bottom:0}
+.lab{padding:8px 12px;border-right:2px solid var(--bd);font-size:15px}
+.lab i{color:var(--req);font-style:normal}
+.val{display:flex}
+.val input,.val select,.val textarea{width:100%;border:0;border-radius:0;background:transparent;color:var(--text);font:italic 15px Arial,Helvetica,sans-serif;text-align:center;text-align-last:center;padding:8px 10px}
+.val textarea{resize:vertical;height:44px}
+.val input::placeholder,.val textarea::placeholder{color:#9ca3af}
+.val select option{font-style:normal;text-align:left}
+.val :focus{outline:3px solid #facc15;outline-offset:-3px}
+.invalid{background:rgba(255,0,0,.12)!important}
+.bar{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:10px 4px 14px}
+#msg{margin-right:auto;font-weight:700;font-size:14px}
+.ok{color:var(--ok)}.err{color:var(--req)}
+.btn{font:900 16px Arial,Helvetica,sans-serif;letter-spacing:.5px;text-transform:uppercase;color:#000;border:2px solid #000;border-radius:0;padding:6px 18px;cursor:pointer;box-shadow:3px 3px 0 #000}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #000}
+.save{background:#00ee00}.clr{background:#facc15}
+.btn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.tw{margin:0 8px;overflow-x:auto;border:2px solid var(--bd)}
+table{width:100%;border-collapse:collapse;min-width:900px;font-size:13px}
+th,td{border:1px solid var(--bd);padding:5px 8px;text-align:center;height:28px}
+th{background:var(--head);font-weight:900;text-transform:uppercase;font-size:12px;letter-spacing:.3px;height:28px}
+td.l{text-align:left}
+td.sub{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{display:block;padding:3px 8px;border-radius:9px;font-size:11px;font-weight:700;white-space:nowrap}
+.act{background:none;border:0;font-weight:900;font-size:12px;cursor:pointer;padding:2px 6px;text-transform:uppercase}
+.ed{color:#1d4ed8}.dl{color:#dc2626}
+.empty td{color:var(--muted);height:60px}
+.foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;padding:8px 10px 10px}
+.fl,.pg{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.foot b{font-size:13px;text-transform:uppercase}
+.foot select{height:26px;font:700 13px Arial,sans-serif;border:2px solid var(--bd);background:var(--card);color:var(--text);padding:0 6px;min-width:64px}
+.tot{background:#facc15;color:#000;border:2px solid #000;box-shadow:2px 2px 0 #000;font-size:11px;font-weight:900;padding:5px 9px;text-transform:uppercase}
+.pb{min-width:26px;height:26px;padding:0 6px;background:var(--card);color:var(--text);border:2px solid var(--bd);font:700 12px Arial,sans-serif;cursor:pointer;text-transform:uppercase}
+.pb.on{background:#000;color:#fff;border-color:#000}
+.pb.nav{background:#000;color:#fff;border-color:#000;font-size:11px;font-weight:900}
+.pb:disabled{background:#c7c7c7;color:#fff;border-color:#c7c7c7;cursor:default}
+.stbl{margin:0 8px 12px;border:2px solid var(--bd)}
+.sthead{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;font-weight:900;font-size:13px;text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid var(--bd)}
+.sthead span{font-size:11px;font-weight:700;opacity:.85}
+.sscroll{max-height:214px;overflow-y:auto;overflow-x:auto}
+.stbl table{min-width:820px}
+.stbl th{position:sticky;top:0;z-index:1}
+.view{background:#fff}
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.ovl.on{display:flex}
+.modal{background:var(--card);color:var(--text);border:2px solid var(--bd);width:100%;max-width:1100px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.mhead{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#facc15;border-bottom:3px solid #000}
+.mhead h2{margin:0;font-size:18px;font-weight:900;font-style:italic;text-transform:uppercase}
+.mclose{background:#000;color:#fff;border:2px solid #000;font:900 14px Arial,sans-serif;width:28px;height:28px;cursor:pointer;line-height:1}
+.mbody{overflow-y:auto;padding-top:8px}
+@media (max-width:700px){h1{font-size:20px}.row{grid-template-columns:1fr}.lab{border-right:0;border-bottom:1px solid var(--bd);padding:8px 12px}.btn{font-size:16px;padding:8px 14px}}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>ICTO Document Tracker</h1>
+<div class="pad"><div class="frm" id="frm"></div>
+<div class="bar"><span id="msg" role="status"></span><button class="btn view" id="viewBtn" type="button">View Records</button><button class="btn clr" id="clear" type="button">Clear</button><button class="btn save" id="save" type="button">Save Document</button></div></div>
+</div>
+
+<div class="ovl" id="ovl">
+<div class="modal">
+<div class="mhead"><h2>Records</h2><button class="mclose" id="mclose" type="button">✕</button></div>
+<div class="foot" style="padding-top:6px">
+<div class="fl"><b>Month:</b><select id="fm"></select><b>Year:</b><select id="fy"></select><span class="tot" id="tot"></span></div>
+</div>
+<div class="mbody"><div id="tables"></div></div>
+</div>
+</div>
+</div>
+
+<script>
+var PEOPLE=["ICTO Staff","Cesar Mancera","Scheider Narag","Leo Sales","Elaine Belmonte","Femy Galvan","Karlos Haber","Mark Olaño","Daniel Serillano"];
+var TYPES=["Incoming Internal","Outgoing Internal","Incoming External","Outgoing External","Other"];
+var STATUS=["Received","On Process","Forwarded","Pending","Filed","For Approval","For Signature","On Hold","Completed"];
+var SCOL={"Received":["#93c5fd","#000"],"On Process":["#facc15","#000"],"Forwarded":["#6d28d9","#fff"],"Completed":["#15803d","#fff"],"Pending":["#fde68a","#000"],"Filed":["#1d4ed8","#fff"],"For Approval":["#f97316","#fff"],"For Signature":["#ef4444","#fff"],"On Hold":["#6b7280","#fff"]};
+var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var F=[["dateReceived","Date Received / Created","date",1],["type","Transaction Type","sel",1,"Select type",TYPES],["docType","Document Information","text",1,"Enter Document Information"],["ref","Reference Number","text",0,"Enter reference number"],["subject","Subject / Particulars","area",1,"Enter subject or particulars"],["origin","Origin of Document","text",0,"Office / Person / Department"],["recipient","Recipient / To","text",0,"Enter recipient"],["receivedBy","Received By","sel",1,"Select person",PEOPLE],["assignedTo","Assigned To","sel",1,"Select person",PEOPLE],["forwarded","Date Forwarded / Released","date",0],["action","Action Required","area",0,"Enter action required"],["due","Due Date / Date of Event","date",0],["status","Status","sel",1,"Select status",STATUS],["statusNote","Status Details","text",0,""],["remarks","Remarks","area",0,"Enter remarks"],["location","File / Record Location","text",0,"Enter file location or Google Drive link"]];
+var KEY="icto-docs",docs=[],editId=null,rowMap={},mcp=null,sheets=null,mode="loading";
+var SPREADSHEET_ID="1EfKV5nBw1nAWCVCpIlVRP1mSJzis2Fvga0pgcdqCrv4";
+var SHEET_NAME="Sheet1";
+var HEADER=["id","dateReceived","type","docType","ref","subject","origin","recipient","receivedBy","assignedTo","forwarded","action","due","status","statusNote","remarks","location","updatedAt"];
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function fmt(iso){if(!iso)return"";var p=iso.split("-");return MON[+p[1]-1]+" "+(+p[2])+", "+p[0]}
+function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function say(t,c){$("msg").textContent=t;$("msg").className=c||""}
+
+// build form
+$("frm").innerHTML=F.map(function(f){
+  var h,id=f[0],ph=f[4]||"";
+  if(f[2]=="sel")h='<select id="'+id+'"><option value="">'+ph+'</option>'+f[5].map(function(o){return"<option>"+esc(o)+"</option>"}).join("")+"</select>";
+  else if(f[2]=="area")h='<textarea id="'+id+'" placeholder="'+ph+'"></textarea>';
+  else h='<input id="'+id+'" type="'+f[2]+'" placeholder="'+ph+'">';
+  return'<div class="row" id="row-'+id+'"'+(id=="statusNote"?' style="display:none"':"")+'><label class="lab" for="'+id+'">'+f[1]+(f[3]?'':"")+'</label><div class="val">'+h+"</div></div>";
+}).join("");
+
+function reset(){F.forEach(function(f){var e=$(f[0]);e.value="";e.classList.remove("invalid")});$("dateReceived").value=today();editId=null;updateNote()}
+var NOTES={"Received":["Received From","Enter who or which office it was received from","from"],"On Process":["Being Processed By","Enter who or which office is processing it","by"],"Forwarded":["Forwarded To (Office)","Type the office it was forwarded to","to"],"Completed":["Completion Details","Enter completion details","" ],"Pending":["Reason for Pending","Enter why it is pending",""],"Filed":["Filed At","Enter where it was filed","at"],"For Approval":["For Approval By","Enter who will approve it","by"],"For Signature":["For Signature By","Enter who will sign it","by"],"On Hold":["Reason for Hold","Enter why it is on hold",""]};
+function updateNote(){var v=$("status").value,n=NOTES[v],r=$("row-statusNote");r.style.display=n?"":"none";if(n){r.querySelector(".lab").innerHTML=n[0];$("statusNote").placeholder=n[1]}else{$("statusNote").value=""}$("statusNote").classList.remove("invalid")}
+function load(){try{docs=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){docs=[]}docs.forEach(function(d,i){if(!d.id)d.id="d"+Date.now()+i;if(d.forwardedTo&&!d.statusNote)d.statusNote=d.forwardedTo})}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(docs))}catch(e){say("Storage unavailable: saved for this session only.","err")}}
+
+function sheetErrMsg(err){
+  var code=err&&err.code;
+  switch(code){
+    case"needs_reauth":return"Google Sheets needs to be reconnected (claude.ai Settings → Connectors).";
+    case"server_not_connected":return"Google Sheets isn't connected. Add it in Settings → Connectors.";
+    case"selection_required":return"Choose which Google account to use for Sheets, then try again.";
+    case"not_in_manifest":return"This page isn't allowed to use Google Sheets right now.";
+    case"blocked_by_policy":return"Your organization blocks this Google Sheets action.";
+    case"approval_required":return"This action needs approval before it can run.";
+    case"server_unavailable":return"Google Sheets is temporarily unavailable. Try again shortly.";
+    case"tool_error":return"Google Sheets rejected the request.";
+    default:return"Couldn't reach Google Sheets"+(code?" ("+code+")":"")+".";
+  }
+}
+function rowNumFromRange(range){var m=/![A-Z]+(\d+)/.exec(range||"");return m?+m[1]:null}
+function rowToDoc(row){var d={};HEADER.forEach(function(h,i){d[h]=row[i]||""});return d}
+function docToRow(d){return HEADER.map(function(h){return d[h]||""})}
+
+async function initStorage(){
+  try{
+    mcp=await claude.use("mcp");
+    if(!mcp){mode="local";load();filters();render();return}
+    sheets=await mcp.server("Google Sheets");
+    mode="sheets";
+    await refreshFromSheet();
+  }catch(e){
+    mode="local";load();filters();render();
+    say(sheetErrMsg(e)+" Working from local storage for now.","err");
+  }
+}
+async function refreshFromSheet(){
+  try{
+    say("Loading records from Google Sheets…");
+    var res=await sheets.get_values({spreadsheetId:SPREADSHEET_ID,range:SHEET_NAME+"!A2:R100000"});
+    var values=(res&&res.values)||[];
+    docs=[];rowMap={};
+    values.forEach(function(row,i){if(!row||!row[0])return;var d=rowToDoc(row);docs.push(d);rowMap[d.id]=i+2});
+    filters();render();say("");
+  }catch(e){say(sheetErrMsg(e),"err")}
+}
+
+function view(){
+  var m=$("fm").value,y=$("fy").value;
+  return docs.filter(function(d){var p=(d.dateReceived||"").split("-");return(m===""||+p[1]-1==m)&&(y===""||p[0]==y)}).sort(function(a,b){return(b.dateReceived||"").localeCompare(a.dateReceived||"")});
+}
+function pill(t,c){return'<span class="pill" style="background:'+c[0]+";color:"+c[1]+'">'+esc(t)+"</span>"}
+function filters(){
+  var fm=$("fm"),fy=$("fy"),m=fm.value,y=fy.value;
+  fm.innerHTML='<option value="">All</option>'+MON.map(function(n,i){return'<option value="'+i+'">'+n+"</option>"}).join("");
+  var ys={};docs.forEach(function(d){if(d.dateReceived)ys[d.dateReceived.split("-")[0]]=1});
+  fy.innerHTML='<option value="">All</option>'+Object.keys(ys).sort().reverse().map(function(v){return"<option>"+v+"</option>"}).join("");
+  fm.value=m;fy.value=y;
+}
+function rowHtml(d){
+  var note=d.statusNote?esc(((NOTES[d.status]||[])[2]||"")+" "+d.statusNote):"";
+  return"<tr><td>"+fmt(d.dateReceived)+'</td><td class="l">'+esc(d.docType)+"</td><td>"+pill(d.type,["#93c5fd","#000"])+'</td><td class="l sub" title="'+esc(d.subject)+'">'+esc(d.subject)+"</td><td>"+esc(d.assignedTo)+'</td><td class="l sub" title="'+note+'">'+note+"</td><td>"+fmt(d.due)+'</td><td><button class="act ed" data-e="'+d.id+'">Edit</button><button class="act dl" data-d="'+d.id+'">Del</button></td></tr>';
+}
+function render(){
+  var rows=view();
+  $("tot").textContent="Total: "+rows.length;
+  var byStatus={};rows.forEach(function(d){(byStatus[d.status]||(byStatus[d.status]=[])).push(d)});
+  $("tables").innerHTML=STATUS.map(function(st){
+    var list=byStatus[st]||[],col=SCOL[st]||["#ddd","#000"],noteLab=(NOTES[st]||["Details"])[0];
+    var body=list.length?list.map(rowHtml).join(""):'<tr class="empty"><td colspan="7">No documents with this status.</td></tr>';
+    return'<div class="stbl"><div class="sthead" style="background:'+col[0]+";color:"+col[1]+'"><span style="font-size:13px">'+esc(st)+'</span><span>'+list.length+' record'+(list.length==1?"":"s")+'</span></div>'
+      +'<div class="sscroll"><table><thead><tr><th>Date</th><th>Document Information</th><th>Transaction Type</th><th>Subject</th><th>Assigned To</th><th>'+esc(noteLab)+'</th><th>Due Date</th><th>Actions</th></tr></thead><tbody>'+body+"</tbody></table></div></div>";
+  }).join("");
+}
+
+$("save").onclick=async function(){
+  var bad=false,d={};
+  F.forEach(function(f){var e=$(f[0]),v=e.value.trim();d[f[0]]=v;var x=(f[3]&&!v)||(f[0]=="statusNote"&&d.status=="Forwarded"&&!v);e.classList.toggle("invalid",x);if(x)bad=true});
+  if(bad){say("Fill in the required fields marked with *.","err");return}
+  $("save").disabled=true;
+  if(mode=="sheets"){
+    d.id=editId||("d"+Date.now());
+    d.updatedAt=new Date().toISOString();
+    var rowArr=docToRow(d);
+    try{
+      if(editId&&rowMap[editId]){
+        await sheets.update_values({spreadsheetId:SPREADSHEET_ID,range:SHEET_NAME+"!A"+rowMap[editId]+":R"+rowMap[editId],values:[rowArr]});
+        var i=docs.findIndex(function(x){return x.id==editId});if(i>-1)docs[i]=d;
+      }else{
+        var res=await sheets.append_values({spreadsheetId:SPREADSHEET_ID,range:SHEET_NAME+"!A1",values:[rowArr]});
+        var r=rowNumFromRange(res&&res.updates&&res.updates.updatedRange);
+        if(r)rowMap[d.id]=r;
+        docs.unshift(d);
+      }
+      reset();filters();render();say("Document saved to Google Sheets.","ok");
+    }catch(e){say(sheetErrMsg(e),"err")}
+  }else{
+    if(editId){var i=docs.findIndex(function(x){return x.id==editId});d.id=editId;if(i>-1)docs[i]=d;else docs.unshift(d)}
+    else{d.id="d"+Date.now();docs.unshift(d)}
+    persist();reset();filters();render();say("Document saved.","ok");
+  }
+  $("save").disabled=false;
+};
+$("clear").onclick=function(){reset();say("")};
+function openView(){$("ovl").classList.add("on");if(mode=="sheets")refreshFromSheet();else render()}
+function closeView(){$("ovl").classList.remove("on")}
+$("viewBtn").onclick=openView;
+$("mclose").onclick=closeView;
+$("ovl").onclick=function(e){if(e.target.id=="ovl")closeView()};
+document.addEventListener("keydown",function(e){if(e.key=="Escape")closeView()});
+$("tables").onclick=async function(e){
+  var t=e.target,id=t.getAttribute("data-d"),ed=t.getAttribute("data-e");
+  if(id){
+    if(mode=="sheets"){
+      var row=rowMap[id];
+      if(row){
+        t.disabled=true;
+        try{
+          await sheets.update_values({spreadsheetId:SPREADSHEET_ID,range:SHEET_NAME+"!A"+row+":R"+row,values:[HEADER.map(function(){return""})]});
+          docs=docs.filter(function(d){return d.id!=id});delete rowMap[id];filters();render();say("Document deleted.","ok");
+        }catch(err){say(sheetErrMsg(err),"err");t.disabled=false}
+      }
+    }else{
+      docs=docs.filter(function(d){return d.id!=id});persist();filters();render();
+    }
+  }
+  if(ed){var d=docs.find(function(x){return x.id==ed});if(!d)return;F.forEach(function(f){$(f[0]).value=d[f[0]]||""});editId=ed;updateNote();say("Editing entry. Press Save Document to update.","ok");closeView();window.scrollTo({top:0,behavior:"smooth"})}
+};
+$("status").onchange=function(){$("statusNote").value="";updateNote()};
+$("fm").onchange=$("fy").onchange=function(){render()};
+
+reset();initStorage();
+</script>
+</body>
+</html>
