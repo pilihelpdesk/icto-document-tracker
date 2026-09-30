@@ -120,7 +120,7 @@ function updateNote(){var v=$("status").value,n=NOTES[v],r=$("row-statusNote");r
 function load(){try{docs=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){docs=[]}docs.forEach(function(d,i){if(!d.id)d.id="d"+Date.now()+i})}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(docs))}catch(e){say("Storage unavailable: saved for this session only.","err")}}
 
-function haveBackend(){return APPS_SCRIPT_URL&&APPS_SCRIPT_URL.indexOf("https://script.google.com/macros/s/AKfycbywHapk-Ge-csMOTGKMzLGI6TmwDSY2nTYKxe21XES_LB1y_noVZKUD53KreqMuGct7Ew/exec")==-1}
+function haveBackend(){return APPS_SCRIPT_URL&&APPS_SCRIPT_URL.indexOf("PASTE_YOUR")==-1}
 function api(params){
   var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+"="+encodeURIComponent(params[k]==null?"":params[k])}).join("&");
   return fetch(APPS_SCRIPT_URL+"?"+qs).then(function(r){
@@ -141,7 +141,7 @@ async function initStorage(){
 async function refreshFromSheet(){
   try{
     say("Loading records from Google Sheets…");
-    var j=await api({action:"list"});
+    var j=await api({cmd:"list"});
     docs=[];rowMap={};
     (j.rows||[]).forEach(function(r){var d={};HEADER.forEach(function(h){d[h]=r[h]||""});docs.push(d);rowMap[d.id]=r._row});
     filters();render();say("");
@@ -184,7 +184,7 @@ $("save").onclick=async function(){
   if(mode=="sheets"){
     d.id=editId||("d"+Date.now());
     d.updatedAt=new Date().toISOString();
-    var params={action:"save"};HEADER.forEach(function(h){params[h]=d[h]});
+    var params={cmd:"save"};HEADER.forEach(function(h){params[h]=d[h]});
     if(editId&&rowMap[editId])params._row=rowMap[editId];
     try{
       var j=await api(params);
@@ -215,7 +215,7 @@ $("tables").onclick=async function(e){
       if(row){
         t.disabled=true;
         try{
-          await api({action:"delete",_row:row});
+          await api({cmd:"delete",_row:row});
           docs=docs.filter(function(d){return d.id!=id});delete rowMap[id];filters();render();say("Document deleted.","ok");
         }catch(err){say("Couldn't delete: "+err.message,"err");t.disabled=false}
       }
