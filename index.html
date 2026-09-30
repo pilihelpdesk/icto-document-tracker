@@ -101,7 +101,16 @@ var APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbywHapk-Ge-csMOTGKM
 var HEADER=["id","dateReceived","type","docType","ref","subject","origin","recipient","receivedBy","assignedTo","forwarded","action","due","status","statusNote","remarks","location","updatedAt"];
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function fmt(iso){if(!iso)return"";iso=String(iso).split("T")[0];var p=iso.split("-");if(p.length<3||!(+p[1])||!(+p[2]))return String(iso);return MON[+p[1]-1]+" "+(+p[2])+", "+p[0]}
+function fmt(s){
+  if(!s)return"";
+  s=String(s).trim();
+  var d;
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)){var p=s.split("T")[0].split("-");d=new Date(+p[0],+p[1]-1,+p[2])}
+  else if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){var q=s.split("/");d=new Date(+q[2],+q[0]-1,+q[1])}
+  else return s;
+  if(isNaN(d.getTime()))return s;
+  return MON[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();
+}
 function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function say(t,c){$("msg").textContent=t;$("msg").className=c||""}
 
