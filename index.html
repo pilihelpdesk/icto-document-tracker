@@ -69,6 +69,10 @@ td.sub{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 .mhead h2{margin:0;font-size:18px;font-weight:900;font-style:italic;text-transform:uppercase}
 .mclose{background:#000;color:#fff;border:2px solid #000;font:900 14px Arial,sans-serif;width:28px;height:28px;cursor:pointer;line-height:1}
 .mbody{overflow-y:auto;padding-top:8px}
+.notice{max-width:420px}
+.notice .mbody{padding:18px 20px 20px;font-size:15px;line-height:1.5}
+.notice .mfoot{display:flex;justify-content:flex-end;padding:0 16px 16px}
+.notice .btn{font-size:14px;padding:6px 20px}
 @media (max-width:700px){h1{font-size:20px}.row{grid-template-columns:1fr}.lab{border-right:0;border-bottom:1px solid var(--bd);padding:8px 12px}.btn{font-size:16px;padding:8px 14px}}
 </style>
 </head>
@@ -77,6 +81,14 @@ td.sub{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 <h1>ICTO Document Tracker</h1>
 <div class="pad"><div class="frm" id="frm"></div>
 <div class="bar"><span id="msg" role="status"></span><button class="btn view" id="viewBtn" type="button">View Records</button><button class="btn clr" id="clear" type="button">Clear</button><button class="btn save" id="save" type="button">Save Document</button></div></div>
+</div>
+
+<div class="ovl" id="novl">
+<div class="modal notice">
+<div class="mhead"><h2 id="ntitle">Notice</h2><button class="mclose" id="nclose" type="button">✕</button></div>
+<div class="mbody" id="nbody"></div>
+<div class="mfoot"><button class="btn save" id="nok" type="button">OK</button></div>
+</div>
 </div>
 
 <div class="ovl" id="ovl">
@@ -187,8 +199,12 @@ function render(){
 }
 
 $("save").onclick=async function(){
-  var bad=false,d={};
-  F.forEach(function(f){var e=$(f[0]),v=e.value.trim();d[f[0]]=v;e.classList.remove("invalid")});
+  var bad=false,d={},hasInput=false;
+  F.forEach(function(f){var e=$(f[0]),v=e.value.trim();d[f[0]]=v;e.classList.remove("invalid");if(v)hasInput=true});
+  if(!hasInput){
+    notice("No Information Entered","Please provide at least one detail before saving this document.");
+    return;
+  }
   $("save").disabled=true;
   if(mode=="sheets"){
     d.id=editId||("d"+Date.now());
@@ -212,6 +228,10 @@ $("save").onclick=async function(){
 $("clear").onclick=function(){reset();say("")};
 function openView(){$("ovl").classList.add("on");if(mode=="sheets")refreshFromSheet();else render()}
 function closeView(){$("ovl").classList.remove("on")}
+function notice(title,msg){$("ntitle").textContent=title;$("nbody").textContent=msg;$("novl").classList.add("on")}
+function closeNotice(){$("novl").classList.remove("on")}
+$("nok").onclick=closeNotice;$("nclose").onclick=closeNotice;
+$("novl").onclick=function(e){if(e.target.id=="novl")closeNotice()};
 $("viewBtn").onclick=openView;
 $("mclose").onclick=closeView;
 $("ovl").onclick=function(e){if(e.target.id=="ovl")closeView()};
