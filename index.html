@@ -91,12 +91,12 @@ td.sub{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 </div>
 
 <script>
-var PEOPLE=["ICTO Staff","Cesar Mancera","Scheider Narag","Leo Sales","Elaine Belmonte","Femy Galvan","Karlos Haber","Mark Olaño","Daniel Serillano"];
+var PEOPLE=["ICTO Staff","Cesar Mancera","Scheider Narag","Leo Sales","Elaine Belmonte","Femy Bernardo","Karlos Haber","Mark Olaño","Daniel Serillano"];
 var TYPES=["Incoming Internal","Outgoing Internal","Incoming External","Outgoing External","Other"];
 var STATUS=["Received","On Process","Forwarded","Pending","Filed","For Approval","For Signature","On Hold","Completed"];
 var SCOL={"Received":["#93c5fd","#000"],"On Process":["#facc15","#000"],"Forwarded":["#6d28d9","#fff"],"Completed":["#15803d","#fff"],"Pending":["#fde68a","#000"],"Filed":["#1d4ed8","#fff"],"For Approval":["#f97316","#fff"],"For Signature":["#ef4444","#fff"],"On Hold":["#6b7280","#fff"]};
 var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-var F=[["dateReceived","Date Received / Created","date",1],["type","Transaction Type","sel",1,"Select type",TYPES],["docType","Document Type","text",1,"Enter Document Type"],["ref","Reference Number","text",0,"Enter reference number"],["subject","Subject / Particulars","area",1,"Enter subject or particulars"],["origin","Origin of Document","text",0,"Office / Person / Department"],["recipient","Recipient / To","text",0,"Enter recipient"],["receivedBy","Received By","sel",1,"Select person",PEOPLE],["assignedTo","Assigned To","sel",1,"Select person",PEOPLE],["forwarded","Date Forwarded / Released","date",0],["action","Action Required","area",0,"Enter action required"],["due","Due Date / Date of Event","date",0],["status","Status","sel",1,"Select status",STATUS],["statusNote","Status Details","text",0,""],["remarks","Remarks","area",0,"Enter remarks"],["location","File / Record Location","text",0,"Enter file location or Google Drive link"]];
+var F=[["dateReceived","Date Received / Created","date",0],["type","Transaction Type","sel",0,"Select type",TYPES],["docType","Document Type","text",0,"Enter Document Type"],["ref","Reference Number","text",0,"Enter reference number"],["subject","Subject / Particulars","area",0,"Enter subject or particulars"],["origin","Origin of Document","text",0,"Office / Person / Department"],["recipient","Recipient / To","text",0,"Enter recipient"],["receivedBy","Received By","sel",0,"Select person",PEOPLE],["assignedTo","Assigned To","sel",0,"Select person",PEOPLE],["forwarded","Date Forwarded / Released","date",0],["action","Action Required","area",0,"Enter action required"],["due","Due Date / Date of Event","date",0],["status","Status","sel",0,"Select status",STATUS],["statusNote","Status Details","text",0,""],["remarks","Remarks","area",0,"Enter remarks"],["location","File / Record Location","text",0,"Enter file location or Google Drive link"]];
 var KEY="icto-docs",docs=[],editId=null,rowMap={},mode="local";
 var APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbywHapk-Ge-csMOTGKMzLGI6TmwDSY2nTYKxe21XES_LB1y_noVZKUD53KreqMuGct7Ew/exec";
 var HEADER=["id","dateReceived","type","docType","ref","subject","origin","recipient","receivedBy","assignedTo","forwarded","action","due","status","statusNote","remarks","location","updatedAt"];
@@ -188,8 +188,7 @@ function render(){
 
 $("save").onclick=async function(){
   var bad=false,d={};
-  F.forEach(function(f){var e=$(f[0]),v=e.value.trim();d[f[0]]=v;var x=(f[3]&&!v)||(f[0]=="statusNote"&&d.status=="Forwarded"&&!v);e.classList.toggle("invalid",x);if(x)bad=true});
-  if(bad){say("Fill in the required fields marked with *.","err");return}
+  F.forEach(function(f){var e=$(f[0]),v=e.value.trim();d[f[0]]=v;e.classList.remove("invalid")});
   $("save").disabled=true;
   if(mode=="sheets"){
     d.id=editId||("d"+Date.now());
