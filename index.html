@@ -14,7 +14,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;padding:20px 16px;color:var(--text);font:16px/1.35 Arial,Helvetica,sans-serif;
 background:linear-gradient(135deg,#14532d 0%,#1e5a2a 35%,#5a6b26 70%,#8a6a14 100%) fixed}
-.card{max-width:1280px;margin:0 auto;background:var(--card);border:2px solid var(--bd);box-shadow:0 6px 24px rgba(0,0,0,.35)}
+.card{background:var(--card);border:2px solid var(--bd);box-shadow:0 6px 24px rgba(0,0,0,.35)}
 h1{margin:3px 3px 0;padding:9px 10px;background:#facc15;color:#000;text-align:center;font-size:24px;font-weight:900;font-style:italic;text-transform:uppercase;border-bottom:3px solid #000}
 .pad{padding:10px 10px 0}
 .frm{border:2px solid var(--bd)}
@@ -61,7 +61,6 @@ td.sub{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 .sscroll{max-height:214px;overflow-y:auto;overflow-x:auto}
 .stbl table{min-width:820px}
 .stbl th{position:sticky;top:0;z-index:1}
-.view{background:#fff}
 .ovl{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
 .ovl.on{display:flex}
 .modal{background:var(--card);color:var(--text);border:2px solid var(--bd);width:100%;max-width:1100px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,.4)}
@@ -73,14 +72,46 @@ td.sub{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 .notice .mbody{padding:18px 20px 20px;font-size:15px;line-height:1.5}
 .notice .mfoot{display:flex;justify-content:flex-end;padding:0 16px 16px}
 .notice .btn{font-size:14px;padding:6px 20px}
+.app{display:flex;gap:14px;align-items:flex-start;max-width:1440px;margin:0 auto}
+.side{width:210px;flex:none;position:sticky;top:20px;background:#14532d;border:2px solid #000;box-shadow:4px 4px 0 #000;color:#fff}
+.brand{display:flex;align-items:center;gap:10px;padding:12px;background:#facc15;color:#000;border-bottom:3px solid #000}
+.brand img{width:44px;height:44px;border-radius:50%;background:#fff}
+.brand b{display:block;font-size:15px;font-weight:900;font-style:italic;text-transform:uppercase;line-height:1.1}
+.brand small{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.tabs{display:flex;flex-direction:column;gap:6px;padding:10px}
+.tab{font:900 13px Arial,Helvetica,sans-serif;letter-spacing:.4px;text-transform:uppercase;text-align:left;color:#fff;background:transparent;border:2px solid transparent;padding:11px 12px;cursor:pointer}
+.tab:hover{background:rgba(255,255,255,.12)}
+.tab.on{background:#facc15;color:#000;border-color:#000;box-shadow:3px 3px 0 #000}
+.tab:focus-visible{outline:3px solid #facc15;outline-offset:2px}
+.main{flex:1;min-width:0}
+.panel{display:none}.panel.on{display:block}
+#tables{padding-top:4px}
+#rmsg{font-weight:700;font-size:14px}
+@media (max-width:800px){.app{flex-direction:column}.side{width:100%;position:static}.tabs{flex-direction:row;flex-wrap:wrap}.tab{flex:1;text-align:center}.main{width:100%}}
 @media (max-width:700px){h1{font-size:20px}.row{grid-template-columns:1fr}.lab{border-right:0;border-bottom:1px solid var(--bd);padding:8px 12px}.btn{font-size:16px;padding:8px 14px}}
 </style>
 </head>
 <body>
-<div class="card">
+<div class="app">
+<aside class="side">
+<div class="brand"><img id="logo" alt="CBSUA seal"><div><b>CBSUA</b><small>ICTO Tracker</small></div></div>
+<nav class="tabs" role="tablist" aria-label="Sections">
+<button class="tab on" id="tabBtn-input" data-tab="input" type="button" role="tab" aria-selected="true">Document Tracker Input</button>
+<button class="tab" id="tabBtn-records" data-tab="records" type="button" role="tab" aria-selected="false">View Records</button>
+</nav>
+</aside>
+<main class="main">
+<section class="card panel on" id="tab-input">
 <h1>ICTO Document Tracker</h1>
 <div class="pad"><div class="frm" id="frm"></div>
-<div class="bar"><span id="msg" role="status"></span><button class="btn view" id="viewBtn" type="button">View Records</button><button class="btn clr" id="clear" type="button">Clear</button><button class="btn save" id="save" type="button">Save Document</button></div></div>
+<div class="bar"><span id="msg" role="status"></span><button class="btn clr" id="clear" type="button">Clear</button><button class="btn save" id="save" type="button">Save Document</button></div></div>
+</section>
+<section class="card panel" id="tab-records">
+<h1>Records</h1>
+<div class="foot"><div class="fl"><b>Month:</b><select id="fm"></select><b>Year:</b><select id="fy"></select><span class="tot" id="tot"></span></div><span id="rmsg" role="status"></span></div>
+<div id="tables"></div>
+</section>
+</main>
 </div>
 
 <div class="ovl" id="novl">
@@ -88,17 +119,6 @@ td.sub{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 <div class="mhead"><h2 id="ntitle">Notice</h2><button class="mclose" id="nclose" type="button">✕</button></div>
 <div class="mbody" id="nbody"></div>
 <div class="mfoot"><button class="btn save" id="nok" type="button">OK</button></div>
-</div>
-</div>
-
-<div class="ovl" id="ovl">
-<div class="modal">
-<div class="mhead"><h2>Records</h2><button class="mclose" id="mclose" type="button">✕</button></div>
-<div class="foot" style="padding-top:6px">
-<div class="fl"><b>Month:</b><select id="fm"></select><b>Year:</b><select id="fy"></select><span class="tot" id="tot"></span></div>
-</div>
-<div class="mbody"><div id="tables"></div></div>
-</div>
 </div>
 </div>
 
@@ -125,7 +145,7 @@ function fmt(s){
   return MON[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();
 }
 function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-function say(t,c){$("msg").textContent=t;$("msg").className=c||""}
+function say(t,c){["msg","rmsg"].forEach(function(i){$(i).textContent=t;$(i).className=c||""})}
 
 // build form
 $("frm").innerHTML=F.map(function(f){
@@ -226,16 +246,22 @@ $("save").onclick=async function(){
   $("save").disabled=false;
 };
 $("clear").onclick=function(){reset();say("")};
-function openView(){$("ovl").classList.add("on");if(mode=="sheets")refreshFromSheet();else render()}
-function closeView(){$("ovl").classList.remove("on")}
+function showTab(n){
+  ["input","records"].forEach(function(t){
+    $("tab-"+t).classList.toggle("on",t==n);
+    $("tabBtn-"+t).classList.toggle("on",t==n);
+    $("tabBtn-"+t).setAttribute("aria-selected",t==n?"true":"false");
+  });
+  if(n=="records"){if(mode=="sheets")refreshFromSheet();else render()}
+  window.scrollTo({top:0});
+}
 function notice(title,msg){$("ntitle").textContent=title;$("nbody").textContent=msg;$("novl").classList.add("on")}
 function closeNotice(){$("novl").classList.remove("on")}
 $("nok").onclick=closeNotice;$("nclose").onclick=closeNotice;
 $("novl").onclick=function(e){if(e.target.id=="novl")closeNotice()};
-$("viewBtn").onclick=openView;
-$("mclose").onclick=closeView;
-$("ovl").onclick=function(e){if(e.target.id=="ovl")closeView()};
-document.addEventListener("keydown",function(e){if(e.key=="Escape")closeView()});
+document.querySelectorAll(".tab").forEach(function(b){b.onclick=function(){showTab(b.getAttribute("data-tab"))}});
+$("logo").src=document.querySelector('link[rel="icon"]').href;
+document.addEventListener("keydown",function(e){if(e.key=="Escape")closeNotice()});
 $("tables").onclick=async function(e){
   var t=e.target,id=t.getAttribute("data-d"),ed=t.getAttribute("data-e");
   if(id){
@@ -252,7 +278,7 @@ $("tables").onclick=async function(e){
       docs=docs.filter(function(d){return d.id!=id});persist();filters();render();
     }
   }
-  if(ed){var d=docs.find(function(x){return x.id==ed});if(!d)return;F.forEach(function(f){$(f[0]).value=d[f[0]]||""});editId=ed;updateNote();say("Editing entry. Press Save Document to update.","ok");closeView();window.scrollTo({top:0,behavior:"smooth"})}
+  if(ed){var d=docs.find(function(x){return x.id==ed});if(!d)return;F.forEach(function(f){$(f[0]).value=d[f[0]]||""});editId=ed;updateNote();say("Editing entry. Press Save Document to update.","ok");showTab("input")}
 };
 $("status").onchange=function(){$("statusNote").value="";updateNote()};
 $("fm").onchange=$("fy").onchange=function(){render()};
