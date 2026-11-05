@@ -85,7 +85,13 @@ td.sub{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 .tab:focus-visible{outline:3px solid #facc15;outline-offset:2px}
 .main{flex:1;min-width:0}
 .panel{display:none}.panel.on{display:block}
-#tables{padding-top:4px}
+#tables{padding-top:0}
+.stabs{display:flex;flex-wrap:wrap;gap:6px;padding:8px 8px 10px}
+.stab{font:900 12px Arial,Helvetica,sans-serif;letter-spacing:.3px;text-transform:uppercase;color:var(--text);background:var(--card);border:2px solid var(--bd);padding:7px 10px;cursor:pointer;display:flex;align-items:center;gap:7px}
+.stab i{font-style:normal;font-size:11px;background:#000;color:#fff;border-radius:9px;padding:1px 7px}
+.stab.on{box-shadow:3px 3px 0 #000}
+.stab:hover:not(.on){background:var(--head)}
+.stab:focus-visible{outline:3px solid #facc15;outline-offset:2px}
 #rmsg{font-weight:700;font-size:14px}
 @media (max-width:800px){.app{flex-direction:column}.side{width:100%;position:static}.tabs{flex-direction:row;flex-wrap:wrap}.tab{flex:1;text-align:center}.main{width:100%}}
 @media (max-width:700px){h1{font-size:20px}.row{grid-template-columns:1fr}.lab{border-right:0;border-bottom:1px solid var(--bd);padding:8px 12px}.btn{font-size:16px;padding:8px 14px}}
@@ -109,6 +115,7 @@ td.sub{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 <section class="card panel" id="tab-records">
 <h1>Records</h1>
 <div class="foot"><div class="fl"><b>Month:</b><select id="fm"></select><b>Year:</b><select id="fy"></select><span class="tot" id="tot"></span></div><span id="rmsg" role="status"></span></div>
+<div class="stabs" id="stabs" role="tablist" aria-label="Status tables"></div>
 <div id="tables"></div>
 </section>
 </main>
@@ -129,7 +136,7 @@ var STATUS=["Received","On Process","Forwarded","Pending","Filed","For Approval"
 var SCOL={"Received":["#93c5fd","#000"],"On Process":["#facc15","#000"],"Forwarded":["#6d28d9","#fff"],"Completed":["#15803d","#fff"],"Pending":["#fde68a","#000"],"Filed":["#1d4ed8","#fff"],"For Approval":["#f97316","#fff"],"For Signature":["#ef4444","#fff"],"On Hold":["#6b7280","#fff"]};
 var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 var F=[["dateReceived","Date Received / Created","date",0],["type","Transaction Type","sel",0,"Select type",TYPES],["docType","Document Type","text",0,"Enter Document Type"],["ref","Reference Number","text",0,"Enter reference number"],["subject","Subject / Particulars","area",0,"Enter subject or particulars"],["origin","Origin of Document","text",0,"Office / Person / Department"],["recipient","Recipient / To","text",0,"Enter recipient"],["receivedBy","Received By","sel",0,"Select person",PEOPLE],["assignedTo","Assigned To","sel",0,"Select person",PEOPLE],["forwarded","Date Forwarded / Released","date",0],["action","Action Required","area",0,"Enter action required"],["due","Due Date / Date of Event","date",0],["status","Status","sel",0,"Select status",STATUS],["statusNote","Status Details","text",0,""],["remarks","Remarks","area",0,"Enter remarks"],["location","File / Record Location","text",0,"Enter file location or Google Drive link"]];
-var KEY="icto-docs",docs=[],editId=null,rowMap={},mode="local";
+var KEY="icto-docs",docs=[],editId=null,rowMap={},mode="local",curStatus="Received";
 var APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbywHapk-Ge-csMOTGKMzLGI6TmwDSY2nTYKxe21XES_LB1y_noVZKUD53KreqMuGct7Ew/exec";
 var HEADER=["id","dateReceived","type","docType","ref","subject","origin","recipient","receivedBy","assignedTo","forwarded","action","due","status","statusNote","remarks","location","updatedAt"];
 var $=function(i){return document.getElementById(i)};
@@ -210,14 +217,20 @@ function render(){
   var rows=view();
   $("tot").textContent="Total: "+rows.length;
   var byStatus={};rows.forEach(function(d){(byStatus[d.status]||(byStatus[d.status]=[])).push(d)});
-  $("tables").innerHTML=STATUS.map(function(st){
+  if(STATUS.indexOf(curStatus)<0)curStatus=STATUS[0];
+  $("stabs").innerHTML=STATUS.map(function(st){
+    var c=SCOL[st]||["#ddd","#000"],n=(byStatus[st]||[]).length,on=st==curStatus;
+    return'<button type="button" class="stab'+(on?" on":"")+'" role="tab" aria-selected="'+on+'" data-st="'+esc(st)+'"'+(on?' style="background:'+c[0]+";color:"+c[1]+'"':"")+'>'+esc(st)+'<i>'+n+'</i></button>';
+  }).join("");
+  $("tables").innerHTML=[curStatus].map(function(st){
     var list=byStatus[st]||[],col=SCOL[st]||["#ddd","#000"],noteLab=(NOTES[st]||["Details"])[0];
-    var body=list.length?list.map(rowHtml).join(""):'<tr class="empty"><td colspan="7">No documents with this status.</td></tr>';
+    var body=list.length?list.map(rowHtml).join(""):'<tr class="empty"><td colspan="8">No documents with this status.</td></tr>';
     return'<div class="stbl"><div class="sthead" style="background:'+col[0]+";color:"+col[1]+'"><span style="font-size:13px">'+esc(st)+'</span><span>'+list.length+' record'+(list.length==1?"":"s")+'</span></div>'
       +'<div class="sscroll"><table><thead><tr><th>Date</th><th>Document Type</th><th>Transaction Type</th><th>Subject</th><th>Assigned To</th><th>'+esc(noteLab)+'</th><th>Due Date</th><th>Actions</th></tr></thead><tbody>'+body+"</tbody></table></div></div>";
   }).join("");
 }
 
+$("stabs").onclick=function(e){var b=e.target.closest("[data-st]");if(!b)return;curStatus=b.getAttribute("data-st");render()};
 $("save").onclick=async function(){
   var bad=false,d={},hasInput=false;
   F.forEach(function(f){var e=$(f[0]),v=e.value.trim();d[f[0]]=v;e.classList.remove("invalid");if(v&&f[0]!="dateReceived")hasInput=true});
